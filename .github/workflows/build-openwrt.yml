@@ -68,9 +68,13 @@ jobs:
         cd openwrt
         $GITHUB_WORKSPACE/$DIY_P1_SH
 
-    - name: Clone spciel source code
-      run: cd openwrt && ./scripts/feeds update -a
-      
+    - name: luci-app-adguardhome luci-app-chinadnsNG luci-app-passwall
+      run: |
+        cd openwrt 
+        git clone https://github.com/rufengsuixing/luci-app-adguardhome package/luci-app-adguardhome
+        git clone -b luci https://github.com/pexcn/openwrt-chinadns-ng.git package/luci-app-chinadns-ng
+        git clone https://github.com/xiaorouji/openwrt-passwall package/passwall
+              
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
 
@@ -97,7 +101,7 @@ jobs:
       run: |
         cd openwrt
         make defconfig
-        make download -j8
+        make download -j8 V=s
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
 
@@ -106,7 +110,7 @@ jobs:
       run: |
         cd openwrt
         echo -e "$(nproc) thread compile"
-        make -j$(nproc) || make -j1 || make -j1 V=s
+        make -j1 V=s
         echo "::set-output name=status::success"
         grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
         [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
